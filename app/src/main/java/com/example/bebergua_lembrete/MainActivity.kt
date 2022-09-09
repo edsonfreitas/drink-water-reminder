@@ -1,7 +1,10 @@
 package com.example.bebergua_lembrete
 
+import android.app.TimePickerDialog
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.AlarmClock
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import com.example.bebergua_lembrete.model.CalcularIngestaoDiaria
@@ -15,9 +18,18 @@ class MainActivity : AppCompatActivity() {
     private  lateinit var btn_calcular: Button
     private  lateinit var txt_resultado_ml: TextView
     private lateinit var ic_redefinir_dados: ImageView
+    private lateinit var btn_lembrete: Button
+    private  lateinit var  btn_alarme: Button
+    private lateinit var txt_hora: TextView
+    private  lateinit var txt_minuto: TextView
 
     private  lateinit var calcularIngestaoDiaria: CalcularIngestaoDiaria
     private  var resultadoML = 0.0
+
+    lateinit var timePickerDialog: TimePickerDialog
+    lateinit var calendario: Calendar
+    var horaAtual = 0
+    var minutosAtual = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         ic_redefinir_dados.setOnClickListener {
+
             val alertDialog = AlertDialog.Builder(this)
             alertDialog.setTitle(R.string.dialog_titulo)
                 .setMessage(R.string.dialog_desc)
@@ -52,6 +65,7 @@ class MainActivity : AppCompatActivity() {
                     edit_peso.setText("")
                     edit_idade.setText("")
                     txt_resultado_ml.text = ""
+
                 })
 
             alertDialog.setNegativeButton("Cancelar", {dialogInterface, i ->
@@ -60,6 +74,35 @@ class MainActivity : AppCompatActivity() {
             val dialog = alertDialog.create()
             dialog.show()
         }
+
+        btn_lembrete.setOnClickListener {
+
+            calendario = Calendar.getInstance()
+            horaAtual = calendario.get(Calendar.HOUR_OF_DAY)
+            minutosAtual = calendario.get(Calendar.MINUTE)
+            timePickerDialog = TimePickerDialog(this, {timePicker: TimePicker, hourOfDay: Int, minutes: Int ->
+                txt_hora.text = String.format("%02d",hourOfDay)
+                txt_minuto.text = String.format("%02d", minutes)
+            }, horaAtual, minutosAtual, true )
+            timePickerDialog.show()
+        }
+
+        btn_alarme.setOnClickListener{
+
+            if(!txt_hora.text.toString().isEmpty() && !txt_minuto.text.toString().isEmpty()){
+                 val  intent = Intent(AlarmClock.ACTION_SET_ALARM)
+                intent.putExtra(AlarmClock.EXTRA_HOUR, txt_hora.text.toString().toInt())
+                intent.putExtra(AlarmClock.EXTRA_MINUTES, txt_minuto.text.toString().toInt())
+                intent.putExtra(AlarmClock.EXTRA_MESSAGE, getString(R.string.alarme_mensagem))
+                startActivity(intent)
+
+                if(intent.resolveActivity(packageManager) != null){
+                    startActivity(intent)
+                }
+
+            }
+        }
+
     }
 
     private fun IniciarComponentes(){
@@ -68,5 +111,9 @@ class MainActivity : AppCompatActivity() {
         btn_calcular = findViewById(R.id.btn_calcular)
         txt_resultado_ml = findViewById(R.id.txt_resultado_ml)
         ic_redefinir_dados = findViewById(R.id.ic_redefinir)
+        btn_lembrete = findViewById(R.id.btn_definir_lembrete)
+        btn_alarme = findViewById(R.id.btn_definir_alarme)
+        txt_hora = findViewById(R.id.txt_hora)
+        txt_minuto = findViewById(R.id.txt_minuto)
     }
 }
